@@ -615,7 +615,7 @@ function Orianna:OnKillSteal()
                         elseif ksspell == _E then 
                             IsSpellValid = self:PredictCastE(enemy)
                         elseif ksspell == _R and menu.ks.numR >= GetEnemiesHitByR() then 
-                              IsSpellValid = self:PredictCastR(enemy)
+                            IsSpellValid = self:PredictCastR(enemy)
                         elseif ksspell == _IGNITE then 
                             IsSpellValid = self:PredictCastI(enemy)
                         end
