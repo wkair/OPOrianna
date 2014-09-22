@@ -1,9 +1,9 @@
--- Change autoUpdate to false if you wish to not receive auto updates.
+﻿-- Change autoUpdate to false if you wish to not receive auto updates.
 -- Change silentUpdate to true if you wish not to receive any message regarding updates
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.4
+local version = 0.5
 
 local scriptName = "OPOrianna"
 
@@ -339,8 +339,10 @@ function Orianna:__init()
         {combo = {_Q,_R}       , spells = function() if(menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() )then return {_Q} else return nil end end },              
         {combo = {_R,_W}       , spells = function() if(menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady())then return {_R,_W} else return nil end end },              
         {combo = {_Q,_R,_W}    , spells = function() if(menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady())then return {_Q} else return nil end end },              
-        {combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY )then return {_IGNITE} else return nil end end },              
-        {combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
+        --{combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY )then return {_IGNITE} else return nil end end },              
+        --{combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
+        {combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI )then return {_IGNITE} else return nil end end },              
+        {combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
     }
 
     -- Register damage sources
