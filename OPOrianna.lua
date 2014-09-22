@@ -3,7 +3,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.2
+local version = 0.3
 
 local scriptName = "OPOrianna"
 
@@ -615,7 +615,7 @@ function Orianna:OnKillSteal()
                             IsSpellValid = self:PredictCastW(enemy)
                         elseif ksspell == _E then 
                             IsSpellValid = self:PredictCastE(enemy)
-                        elseif ksspell == _R and menu.ks.numR >= GetEnemiesHitByR() then 
+                        elseif ksspell == _R and menu.ks.numR >= self:GetEnemiesHitByR() then 
                             IsSpellValid = self:PredictCastR(enemy)
                         elseif ksspell == _IGNITE then 
                             IsSpellValid = self:PredictCastI(enemy)
