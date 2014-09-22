@@ -1,14 +1,26 @@
-﻿-- Change autoUpdate to false if you wish to not receive auto updates.
+-- Change autoUpdate to false if you wish to not receive auto updates.
 -- Change silentUpdate to true if you wish not to receive any message regarding updates
-local autoUpdate   = true
+local autoUpdate   = false
 local silentUpdate = false
 
-local version = 0.1
+local version = 0.11
 
 local scriptName = "OPOrianna"
 
+
+--[[
+     ██████╗ ██████╗ ██╗ █████╗ ███╗   ██╗███╗   ██╗ █████╗ 
+    ██╔═══██╗██╔══██╗██║██╔══██╗████╗  ██║████╗  ██║██╔══██╗
+    ██║   ██║██████╔╝██║███████║██╔██╗ ██║██╔██╗ ██║███████║
+    ██║   ██║██╔══██╗██║██╔══██║██║╚██╗██║██║╚██╗██║██╔══██║
+    ╚██████╔╝██║  ██║██║██║  ██║██║ ╚████║██║ ╚████║██║  ██║
+     ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚═╝  ╚═╝
+]]
+
 local champions = {
+    ["Ryze"]         = true,
     ["Orianna"]      = true,
+    ["Blitzcrank"]   = true
 }
 
 if not champions[player.charName] then autoUpdate = nil silentUpdate = nil version = nil scriptName = nil champions = nil collectgarbage() return end
@@ -26,7 +38,7 @@ end
 if not sourceLibFound then return end
 
 if autoUpdate then
-    SourceUpdater(scriptName, version, "raw.github.com", "/wkair/OPOrianna/master/OPOrianna.lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/wkair/OPOrianna/master/version.txt"):SetSilent(silentUpdate):CheckUpdate()
+    SourceUpdater(scriptName, version, "raw.github.com", "/Hellsing/public/master/" .. scriptName .. ".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/Hellsing/public/master/version/" .. scriptName .. ".version"):SetSilent(silentUpdate):CheckUpdate()
 end
 
 local libDownloader = Require(scriptName)
@@ -69,6 +81,8 @@ local AAcircle = nil
 local champLoaded = false
 local skip        = false
 local myRecall    = false
+
+local skinNumber = nil
 
 local __colors = {
     { current = 255, step = 1, min = 0, max = 255, mode = -1 },
@@ -165,6 +179,16 @@ function OnDraw()
     AAcircle.color[4] = __colors[3].current
     AAcircle.range    = OW:MyRange() 
 
+    -- Skin changer
+    if VIP_USER and menu.skin then
+        for i = 1, skinNumber do
+            if menu.skin["skin"..i] then
+                menu.skin["skin"..i] = false
+                GenModelPacket(player.charName, i - 1)
+            end
+        end
+    end
+
 end
 
 -- Spudgy please...
@@ -176,6 +200,15 @@ function OnDeleteObj(object) if champLoaded and champ.OnDeleteObj then champ:OnD
 
 function loadMenu()
     menu = MenuWrapper("[" .. scriptName .. "] " .. player.charName, "unique" .. player.charName:gsub("%s+", ""))
+
+    -- Skin changer
+    if VIP_USER and champ.GetSkins then
+        menu:GetHandle():addSubMenu("Skin Changer", "skin")
+        for i, name in ipairs(champ:GetSkins()) do
+            menu:GetHandle().skin:addParam("skin"..i, name, SCRIPT_PARAM_ONOFF, false)
+        end
+        skinNumber = #champ:GetSkins()
+    end
 
     menu:SetTargetSelector(STS)
     menu:SetOrbwalker(OW)
@@ -256,6 +289,31 @@ function __mixColors()
     end
 end
 
+-- Credits to shalzuth for this!
+function GenModelPacket(champ, skinId)
+    p = CLoLPacket(0x97)
+    p:EncodeF(player.networkID)
+    p.pos = 1
+    t1 = p:Decode1()
+    t2 = p:Decode1()
+    t3 = p:Decode1()
+    t4 = p:Decode1()
+    p:Encode1(t1)
+    p:Encode1(t2)
+    p:Encode1(t3)
+    p:Encode1(bit32.band(t4,0xB))
+    p:Encode1(1)--hardcode 1 bitfield
+    p:Encode4(skinId)
+    for i = 1, #champ do
+        p:Encode1(string.byte(champ:sub(i,i)))
+    end
+    for i = #champ + 1, 64 do
+        p:Encode1(0)
+    end
+    p:Hide()
+    RecvPacket(p)
+end
+
 function GetPredictedPos(unit, delay, speed, source)
     if menu.prediction.predictionType == 1 then
         return VP:GetPredictedPos(unit, delay, speed, source)
@@ -287,14 +345,10 @@ function GetDistanceToClosestAlly(p)
     return d
 end  
 
---[[
-     ██████╗ ██████╗ ██╗ █████╗ ███╗   ██╗███╗   ██╗ █████╗ 
-    ██╔═══██╗██╔══██╗██║██╔══██╗████╗  ██║████╗  ██║██╔══██╗
-    ██║   ██║██████╔╝██║███████║██╔██╗ ██║██╔██╗ ██║███████║
-    ██║   ██║██╔══██╗██║██╔══██║██║╚██╗██║██║╚██╗██║██╔══██║
-    ╚██████╔╝██║  ██║██║██║  ██║██║ ╚████║██║ ╚████║██║  ██║
-     ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚═╝  ╚═╝
-]]
+
+
+
+
 
 function Orianna:__init()
 
@@ -339,8 +393,8 @@ function Orianna:__init()
         {combo = {_Q,_R}       , spells = function() if(menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() )then return {_Q} else return nil end end },              
         {combo = {_R,_W}       , spells = function() if(menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady())then return {_R,_W} else return nil end end },              
         {combo = {_Q,_R,_W}    , spells = function() if(menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady())then return {_Q} else return nil end end },              
-        {combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI )then return {_IGNITE} else return nil end end },              
-        {combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
+        {combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY)then return {_IGNITE} else return nil end end },              
+        {combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
     }
 
     -- Register damage sources
@@ -422,6 +476,17 @@ function Orianna:__init()
     self.farRange = 1.3
 
 end
+
+-- Not working with Orianna, sorry guys :/
+--[[function Orianna:GetSkins()
+    return {
+        "Classic",
+        "Gothic",
+        "Swen Chaos",
+        "Bladecraft",
+        "TPA"
+    }
+end]]
 
 function Orianna:OnTick()
     if menu.misc.autolv then autoLevelSetSequence(self.levelSequence) end
@@ -556,8 +621,8 @@ function Orianna:OnKillSteal()
                             IsSpellValid = self:PredictCastW(enemy)
                         elseif ksspell == _E then 
                             IsSpellValid = self:PredictCastE(enemy)
-                        elseif ksspell == _R and menu.ks.numR >= self:GetEnemiesHitByR() then 
-                            IsSpellValid = self:PredictCastR(enemy)
+                        elseif ksspell == _R and menu.ks.numR >= GetEnemiesHitByR() then 
+                              IsSpellValid = self:PredictCastR(enemy)
                         elseif ksspell == _IGNITE then 
                             IsSpellValid = self:PredictCastI(enemy)
                         end
@@ -1177,7 +1242,7 @@ function Orianna:ApplyMenu()
     menu.combo:addParam("sep",    "",                        SCRIPT_PARAM_INFO, "")
     menu.combo:addParam("ignite", "Use ignite",              SCRIPT_PARAM_ONOFF, true)
 
-    menu.harass:addParam("toggle", "Harass toggle",            SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("Z"))
+    menu.harass:addParam("toggle", "Harass toggle",            SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
     menu.harass:addParam("sep",    "",                         SCRIPT_PARAM_INFO, "")
     menu.harass:addParam("useQ",   "Use Q",                    SCRIPT_PARAM_ONOFF, true)
     menu.harass:addParam("useW",   "Use W",                    SCRIPT_PARAM_ONOFF, false)
