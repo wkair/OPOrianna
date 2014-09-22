@@ -8,9 +8,7 @@ local version = 0.1
 local scriptName = "OPOrianna"
 
 local champions = {
-    ["Ryze"]         = true,
     ["Orianna"]      = true,
-    ["Blitzcrank"]   = true
 }
 
 if not champions[player.charName] then autoUpdate = nil silentUpdate = nil version = nil scriptName = nil champions = nil collectgarbage() return end
