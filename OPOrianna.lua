@@ -185,7 +185,7 @@ function loadMenu()
 
     -- Prediction
     menu:addSubMenu("Prediction", "prediction")
-        menu.prediction:addParam("predictionType", "Prediction Type", SCRIPT_PARAM_LIST, 1, { "VPrediction", "Prodiction" })
+        menu.prediction:addParam("predictionType", "Prediction Type", SCRIPT_PARAM_LIST, 1, { "VPrediction", "Prodiction(VIP)" })
         _G.srcLib.spellMenu =  menu.prediction
 
     -- Combo
@@ -1219,7 +1219,7 @@ function Orianna:ApplyMenu()
         menu.misc:addParam("autoR",     "Auto R on",                         SCRIPT_PARAM_LIST, 1, { "Nope", "1+ target", "2+ targets", "3+ targets", "4+ targets", "5+ targets" })
         menu.misc:addParam("EQ",        "Use E + Q if tEQ < %x * tQ",        SCRIPT_PARAM_SLICE, 100, 0, 200)
         menu.misc:addParam("interrupt", "Auto interrupt important spells",   SCRIPT_PARAM_ONOFF, true)
-        menu.misc:addParam("blockR",    "Block R if it is not going to hit", SCRIPT_PARAM_ONOFF, true)
+        menu.misc:addParam("blockR",    "Block R if it's will not hit(VIP)", SCRIPT_PARAM_ONOFF, true)
 
     menu:addSubMenu("Farm", "farm")
         menu.farm:addParam("freeze", "Farm Freezing",          SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
