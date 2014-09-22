@@ -1,15 +1,35 @@
 ﻿-- Change autoUpdate to false if you wish to not receive auto updates.
 -- Change silentUpdate to true if you wish not to receive any message regarding updates
-local autoUpdate   = true
+local autoUpdate   = false
 local silentUpdate = false
 
-local version = 0.5
+local version = 0.1
 
 local scriptName = "OPOrianna"
 
+--[[
+
+     ▄▄▄       ██▓     ██▓        ██▓ ███▄    █     ▒█████   ███▄    █ ▓█████ 
+    ▒████▄    ▓██▒    ▓██▒       ▓██▒ ██ ▀█   █    ▒██▒  ██▒ ██ ▀█   █ ▓█   ▀ 
+    ▒██  ▀█▄  ▒██░    ▒██░       ▒██▒▓██  ▀█ ██▒   ▒██░  ██▒▓██  ▀█ ██▒▒███   
+    ░██▄▄▄▄██ ▒██░    ▒██░       ░██░▓██▒  ▐▌██▒   ▒██   ██░▓██▒  ▐▌██▒▒▓█  ▄ 
+     ▓█   ▓██▒░██████▒░██████▒   ░██░▒██░   ▓██░   ░ ████▓▒░▒██░   ▓██░░▒████▒
+     ▒▒   ▓▒█░░ ▒░▓  ░░ ▒░▓  ░   ░▓  ░ ▒░   ▒ ▒    ░ ▒░▒░▒░ ░ ▒░   ▒ ▒ ░░ ▒░ ░
+      ▒   ▒▒ ░░ ░ ▒  ░░ ░ ▒  ░    ▒ ░░ ░░   ░ ▒░     ░ ▒ ▒░ ░ ░░   ░ ▒░ ░ ░  ░
+      ░   ▒     ░ ░     ░ ░       ▒ ░   ░   ░ ░    ░ ░ ░ ▒     ░   ░ ░    ░   
+
+    All In One - Well, at least some champs in one script :D
+
+    People who helped me:
+        Apple  - Multi champ framework setup
+        Zikkah - Packet help (Blitzcrank Q)
+
+]]
 
 local champions = {
+    ["Ryze"]         = true,
     ["Orianna"]      = true,
+    ["Blitzcrank"]   = true
 }
 
 if not champions[player.charName] then autoUpdate = nil silentUpdate = nil version = nil scriptName = nil champions = nil collectgarbage() return end
@@ -92,7 +112,7 @@ function OnLoad()
     champ = champ()
 
     -- Prevent errors
-    if not champ then print("There was an error while loading " .. player.charName .. ", please report the shown error to wkair, thanks!") return else champLoaded = true end
+    if not champ then print("There was an error while loading " .. player.charName .. ", please report the shown error to Hellsing, thanks!") return else champLoaded = true end
 
     -- Auto attack range circle
     --AAcircle = DM:CreateCircle(player, OW:MyRange(), 3)
@@ -124,7 +144,6 @@ function OnLoad()
     if champ.OnUpdateBuff   then AdvancedCallback:bind('OnUpdateBuff', function(unit, buff) champ:OnUpdateBuff(unit, buff) end) end
     if champ.OnLoseBuff     then AdvancedCallback:bind('OnLoseBuff',   function(unit, buff) champ:OnLoseBuff(unit, buff)   end) end
 
-    print("<font color=\"#6699ff\"><b>[ " .. scriptName .. " ]</b></font> <font color=\"#FFFFFF\"> [verstion :"..version.."] Good luck!</font>")
 end
 
 function OnTick()
@@ -187,7 +206,7 @@ function loadMenu()
 
     -- Prediction
     menu:addSubMenu("Prediction", "prediction")
-        menu.prediction:addParam("predictionType", "Prediction Type", SCRIPT_PARAM_LIST, 1, { "VPrediction", "Prodiction(VIP)" })
+        menu.prediction:addParam("predictionType", "Prediction Type", SCRIPT_PARAM_LIST, 1, { "VPrediction", "Prodiction" })
         _G.srcLib.spellMenu =  menu.prediction
 
     -- Combo
@@ -289,6 +308,9 @@ function GetDistanceToClosestAlly(p)
     return d
 end  
 
+
+
+
 --[[
      ██████╗ ██████╗ ██╗ █████╗ ███╗   ██╗███╗   ██╗ █████╗ 
     ██╔═══██╗██╔══██╗██║██╔══██╗████╗  ██║████╗  ██║██╔══██╗
@@ -341,10 +363,8 @@ function Orianna:__init()
         {combo = {_Q,_R}       , spells = function() if(menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() )then return {_Q} else return nil end end },              
         {combo = {_R,_W}       , spells = function() if(menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady())then return {_R,_W} else return nil end end },              
         {combo = {_Q,_R,_W}    , spells = function() if(menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady())then return {_Q} else return nil end end },              
-        {combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI and CanUseSpell(player,_IGNITE) == READY )then return {_IGNITE} else return nil end end },              
-        {combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and CanUseSpell(player,_IGNITE) == READY and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
-        --{combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI )then return {_IGNITE} else return nil end end },              
-        --{combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
+        {combo = {_IGNITE,_AA} , spells = function() if(menu.ks.UseI )then return {_IGNITE} else return nil end end },              
+        {combo = {_IGNITE,_Q}  , spells = function() if(menu.ks.UseI and menu.ks.UseQ and spells[_Q]:IsReady())then return {_IGNITE,_Q} else return nil end end },              
     }
 
     -- Register damage sources
@@ -1223,7 +1243,7 @@ function Orianna:ApplyMenu()
         menu.misc:addParam("autoR",     "Auto R on",                         SCRIPT_PARAM_LIST, 1, { "Nope", "1+ target", "2+ targets", "3+ targets", "4+ targets", "5+ targets" })
         menu.misc:addParam("EQ",        "Use E + Q if tEQ < %x * tQ",        SCRIPT_PARAM_SLICE, 100, 0, 200)
         menu.misc:addParam("interrupt", "Auto interrupt important spells",   SCRIPT_PARAM_ONOFF, true)
-        menu.misc:addParam("blockR",    "Block R if it's will not hit(VIP)", SCRIPT_PARAM_ONOFF, true)
+        menu.misc:addParam("blockR",    "Block R if it is not going to hit", SCRIPT_PARAM_ONOFF, true)
 
     menu:addSubMenu("Farm", "farm")
         menu.farm:addParam("freeze", "Farm Freezing",          SCRIPT_PARAM_ONKEYDOWN, false, string.byte("C"))
