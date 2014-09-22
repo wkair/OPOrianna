@@ -126,7 +126,7 @@ function OnLoad()
     if champ.OnUpdateBuff   then AdvancedCallback:bind('OnUpdateBuff', function(unit, buff) champ:OnUpdateBuff(unit, buff) end) end
     if champ.OnLoseBuff     then AdvancedCallback:bind('OnLoseBuff',   function(unit, buff) champ:OnLoseBuff(unit, buff)   end) end
 
-    print("<font color=\"#6699ff\"><b>[ " .. scriptName .. " ]</b></font> <font color=\"#FFFFFF\"> [verstion :"..version.."] </font>Good luck!")
+    print("<font color=\"#6699ff\"><b>[ " .. scriptName .. " ]</b></font> <font color=\"#FFFFFF\"> [verstion :"..version.."] Good luck!</font>")
 end
 
 function OnTick()
