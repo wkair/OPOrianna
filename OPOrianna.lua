@@ -1,6 +1,6 @@
 -- Change autoUpdate to false if you wish to not receive auto updates.
 -- Change silentUpdate to true if you wish not to receive any message regarding updates
-local autoUpdate   = false
+local autoUpdate   = true
 local silentUpdate = false
 
 local version = 0.11
@@ -38,7 +38,7 @@ end
 if not sourceLibFound then return end
 
 if autoUpdate then
-    SourceUpdater(scriptName, version, "raw.github.com", "/Hellsing/public/master/" .. scriptName .. ".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/Hellsing/public/master/version/" .. scriptName .. ".version"):SetSilent(silentUpdate):CheckUpdate()
+    SourceUpdater(scriptName, version, "raw.github.com", "/wkair/OPOrianna/blob/master/" .. scriptName .. ".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/wkair/OPOrianna/blob/master/version.txt"):SetSilent(silentUpdate):CheckUpdate()
 end
 
 local libDownloader = Require(scriptName)
