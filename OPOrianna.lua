@@ -94,7 +94,7 @@ function OnLoad()
     champ = champ()
 
     -- Prevent errors
-    if not champ then print("There was an error while loading " .. player.charName .. ", please report the shown error to Hellsing, thanks!") return else champLoaded = true end
+    if not champ then print("There was an error while loading " .. player.charName .. ", please report the shown error to wkair, thanks!") return else champLoaded = true end
 
     -- Auto attack range circle
     --AAcircle = DM:CreateCircle(player, OW:MyRange(), 3)
@@ -126,6 +126,7 @@ function OnLoad()
     if champ.OnUpdateBuff   then AdvancedCallback:bind('OnUpdateBuff', function(unit, buff) champ:OnUpdateBuff(unit, buff) end) end
     if champ.OnLoseBuff     then AdvancedCallback:bind('OnLoseBuff',   function(unit, buff) champ:OnLoseBuff(unit, buff)   end) end
 
+    print("<font color=\"#6699ff\"><b>[ " .. scriptName .. " ]</b></font> <font color=\"#FFFFFF\"> [verstion :"..version.."] </font>Good luck!")
 end
 
 function OnTick()
