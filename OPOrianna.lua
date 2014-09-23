@@ -1,4 +1,4 @@
-local autoUpdate   = false
+local autoUpdate   = true
 local silentUpdate = false
 
 local version = 0.19
@@ -1164,7 +1164,7 @@ function Orianna:ApplyMenu()
     menu.combo:addParam("sep",    "",                        SCRIPT_PARAM_INFO, "")
     menu.combo:addParam("ignite", "Use ignite",              SCRIPT_PARAM_ONOFF, true)
 
-    menu.harass:addParam("toggle", "Harass toggle",            SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
+    menu.harass:addParam("toggle", "Harass toggle",            SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("A"))
     menu.harass:addParam("sep",    "",                         SCRIPT_PARAM_INFO, "")
     menu.harass:addParam("useQ",   "Use Q",                    SCRIPT_PARAM_ONOFF, true)
     menu.harass:addParam("useW",   "Use W",                    SCRIPT_PARAM_ONOFF, false)
