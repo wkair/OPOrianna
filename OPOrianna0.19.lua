@@ -1,24 +1,12 @@
--- Change autoUpdate to false if you wish to not receive auto updates.
--- Change silentUpdate to true if you wish not to receive any message regarding updates
-local autoUpdate   = true
+local autoUpdate   = false
 local silentUpdate = false
 
-local version = 0.17
+local version = 0.19
 
 local scriptName = "OPOrianna"
 
-
---[[
-     ██████╗ ██████╗ ██╗ █████╗ ███╗   ██╗███╗   ██╗ █████╗ 
-    ██╔═══██╗██╔══██╗██║██╔══██╗████╗  ██║████╗  ██║██╔══██╗
-    ██║   ██║██████╔╝██║███████║██╔██╗ ██║██╔██╗ ██║███████║
-    ██║   ██║██╔══██╗██║██╔══██║██║╚██╗██║██║╚██╗██║██╔══██║
-    ╚██████╔╝██║  ██║██║██║  ██║██║ ╚████║██║ ╚████║██║  ██║
-     ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚═╝  ╚═╝
-]]
-
 local champions = {
-    ["Orianna"]      = true
+    ["Orianna"]      = true,
 }
 
 if not champions[player.charName] then autoUpdate = nil silentUpdate = nil version = nil scriptName = nil champions = nil collectgarbage() return end
@@ -40,9 +28,7 @@ if autoUpdate then
 end
 
 local libDownloader = Require(scriptName)
-if VIP_USER then
-    libDownloader:Add("Prodiction",  "https://bitbucket.org/Klokje/public-klokjes-bol-scripts/raw/master/Test/Prodiction/Prodiction.lua")
-end
+libDownloader:Add("Prodiction",  "https://bitbucket.org/Klokje/public-klokjes-bol-scripts/raw/master/Test/Prodiction/Prodiction.lua")
 libDownloader:Add("VPrediction", "https://raw.github.com/Hellsing/BoL/master/common/VPrediction.lua")
 libDownloader:Add("SOW",         "https://raw.github.com/Hellsing/BoL/master/common/SOW.lua")
 libDownloader:Check()
@@ -97,7 +83,7 @@ function OnLoad()
     DM   = DrawManager()
     DLib = DamageLib()
 
-    if _IGNITE == nil then 
+    if not _IGNITE then 
         _IGNITE  = GetSummonerSlot("summonerdot")
         DLib:RegisterDamageSource(_IGNITE, _TRUE, 0, 0, _TRUE, _AP, 0, function() return _IGNITE and (player:CanUseSpell(_IGNITE) == READY) end, function() return (50 + 20 * player.level) end)
     end
@@ -109,11 +95,12 @@ function OnLoad()
     if not champ then print("There was an error while loading " .. player.charName .. ", please report the shown error to Hellsing, thanks!") return else champLoaded = true end
 
     -- Auto attack range circle
-    --AAcircle = DM:CreateCircle(player, OW:MyRange(), 3)
-    AAcircle = DM:CreateCircle(player, player.range, 3)
+    AAcircle = DM:CreateCircle(player, OW:MyRange(), 3)
+
     -- Load menu
     loadMenu()
 
+    --if true then champLoaded = false return end
 
     -- Regular callbacks registering
     if champ.OnUnload       then AddUnloadCallback(function()                     champ:OnUnload()                  end) end
@@ -124,7 +111,7 @@ function OnLoad()
     if champ.OnRecvChat     then AddRecvChatCallback(function(text)               champ:OnRecvChat(text)            end) end
     if champ.OnWndMsg       then AddMsgCallback(function(msg, wParam)             champ:OnWndMsg(msg, wParam)       end) end
     --if champ.OnCreateObj    then AddCreateObjCallback(function(obj)               champ:OnCreateObj(object)         end) end
-    --if champ.OnDeleteObj    then AddDeleteObjCallback(function(obj)               champ:OnDeleteObj(object)         end) end
+    if champ.OnDeleteObj    then AddDeleteObjCallback(function(obj)               champ:OnDeleteObj(object)         end) end
     if champ.OnProcessSpell then AddProcessSpellCallback(function(unit, spell)    champ:OnProcessSpell(unit, spell) end) end
     if champ.OnSendPacket   then AddSendPacketCallback(function(p)                champ:OnSendPacket(p)             end) end
     if champ.OnRecvPacket   then AddRecvPacketCallback(function(p)                champ:OnRecvPacket(p)             end) end
@@ -144,11 +131,6 @@ function OnTick()
 
     -- Prevent error spamming
     if not champLoaded then return end
-
-    if not VIP_USER and menu.prediction.predictionType == 2 then
-        menu.prediction.predictionType = 1
-        PrintChat("You Can't use Prodiction. only vip")
-    end
 
     if champ.OnTick then
         champ:OnTick()
@@ -173,8 +155,11 @@ function OnDraw()
     -- Prevent error spamming
     if not champLoaded then return end
 
+    -- if champ.OnDraw then
+    --     champ:OnDraw()
+    -- end
+
     __mixColors()
-    AAcircle.color[1] = 90
     AAcircle.color[2] = __colors[1].current
     AAcircle.color[3] = __colors[2].current
     AAcircle.color[4] = __colors[3].current
@@ -184,8 +169,6 @@ end
 
 -- Spudgy please...
 function OnCreateObj(object) if champLoaded and champ.OnCreateObj then champ:OnCreateObj(object) end end
-
-function OnDeleteObj(object) if champLoaded and champ.OnDeleteObj then champ:OnDeleteObj(object) end end
 
 --[[ Other Functions ]]--
 
@@ -237,12 +220,13 @@ function initializeSpells()
     end
 end
 
-function getBestTarget(range)
+function getBestTarget(range, condition)
+    condition = condition or function() return true end
     local target = STS:GetTarget(range)
-    if not target then
+    if not target or not condition(target) then
         target = nil
         for _, enemy in ipairs(GetEnemyHeroes()) do
-            if ValidTarget(enemy, range) then
+            if ValidTarget(enemy, range) and condition(enemy) then
                 if not target or enemy.health < target.health then
                     target = enemy
                 end
@@ -301,15 +285,10 @@ function GetDistanceToClosestAlly(p)
     return d
 end  
 
-
-
-
-
-
 function Orianna:__init()
 
     spellData = {
-        [_Q] = { range = 815, skillshotType = SKILLSHOT_LINEAR, width = 80,  delay = 0,    speed = 1200, radius = 145, collision = false },
+        [_Q] = { range = 825, skillshotType = SKILLSHOT_LINEAR, width = 80,  delay = 0,    speed = 1200, radius = 145, collision = false },
         [_W] = { range = -1,                                    width = 235, delay = 0.25 },
         [_E] = { range = 1095,                                  width = 80,  delay = 0.25, speed = 1700 },
         [_R] = { range = -1,                                    width = 380, delay = 0.6  },
@@ -319,10 +298,8 @@ function Orianna:__init()
     -- Finetune spells
     spells[_E]:SetSkillshot(VP, SKILLSHOT_LINEAR, spellData[_E].width, spellData[_E].delay, spellData[_E].speed, false)
     spells[_E].skillshotType = nil
-    if VIP_USER then
-        spells[_W].packetCast = true
-        spells[_R].packetCast = true
-    end
+    spells[_W].packetCast = true
+    spells[_R].packetCast = true
 
     -- Circle customization
     circles[_Q].color = { 255, 255, 100, 0 }
@@ -364,7 +341,7 @@ function Orianna:__init()
     self.ballMoving = false
 
     self.ballCircles = {
-        DM:CreateCircle(self.ballPos, 50, 3, { 255, 200, 0, 0 }):SetDrawCondition(function() return not self.ballMoving and (not self.ballPos.networkID or self.ballPos.networkID ~= player.networkID) end),
+        DM:CreateCircle(self.ballPos, 50, 5, { 255, 200, 0, 0 }):SetDrawCondition(function() return not self.ballMoving and (not self.ballPos.networkID or self.ballPos.networkID ~= player.networkID) end),
         DM:CreateCircle(self.ballPos, spellData[_W].width, 1, { 200, 200, 0, 255 }):SetDrawCondition(function() return not self.ballMoving and spells[_W]:IsReady() end),
         DM:CreateCircle(self.ballPos, spellData[_R].width, 1, { 255, 200, 0, 255 }):SetDrawCondition(function() return not self.ballMoving and spells[_R]:IsReady() end)
     }
@@ -375,6 +352,11 @@ function Orianna:__init()
             self.ballCircles[i].position = self.ballPos
         end
     end, 10)
+
+     -- Auto level
+    TickLimiter(function()
+        if menu.misc.autolv then autoLevelSetSequence(self.levelSequence) end
+    end, 1)
 
     -- Used for initiator shielding
     self.lastSpellUsed = {}
@@ -423,9 +405,7 @@ function Orianna:__init()
     }
 
     -- Precise packet hooks
-    if VIP_USER then
-        PacketHandler:HookOutgoingPacket(Packet.headers.S_CAST, function(p) self:OnCastSpell(p) end)
-    end
+    PacketHandler:HookOutgoingPacket(Packet.headers.S_CAST, function(p) self:OnCastSpell(p) end)
 
     -- Other helper values
     self.nearEnemyHeroes = false
@@ -434,7 +414,6 @@ function Orianna:__init()
 end
 
 function Orianna:OnTick()
-    if menu.misc.autolv then autoLevelSetSequence(self.levelSequence) end
 
     -- Enemy check
     self.nearEnemyHeroes = CountEnemyHeroInRange(spells[_Q].range + spellData[_R].width)
@@ -444,10 +423,6 @@ function Orianna:OnTick()
 
     -- Disable spellcasting attempts while ball is moving
     if self.ballMoving then skipCombo() return end
-
-    if menu.misc.shield and spells[_E]:IsReady() then  
-        spells[_E]:Cast(player)
-    end
 
     -- Lane farm
     if menu.farm.freeze or menu.farm.lane then
@@ -478,10 +453,10 @@ function Orianna:OnTick()
     -- No checks when no enemies around
     if self.nearEnemyHeroes == 0 then return end
 
-    -- Kill Steal
+    -- Harass toggle
     if not skip and menu.ks.Enable then
         self:OnKillSteal()
-    end 
+    end
 
     -- Auto W
     if menu.misc.autoW > 1 and spells[_W]:IsReady() then
@@ -548,55 +523,20 @@ function Orianna:ComboToString( COMBO )
 
 end
 
-function Orianna:OnKillSteal()
-    if os.clock() - self.ksclock < 0.1 then return end
-    self.ksclock = os.clock()
-
-    for _, enemy in ipairs(GetEnemyHeroes()) do
-        if ValidTarget(enemy, spellData[_Q].range + spellData[_R].width)then
-            for i, Combo in ipairs(self.Kscombolist) do
-                local spellList = Combo.spells()
-                if spellList and DLib:IsKillable(enemy, Combo.combo) then 
-                    
-                    local IsSpellValid = false
-                    for _, ksspell in ipairs(spellList) do
-                        if ksspell == _Q then 
-                            IsSpellValid = self:PredictCastQ(enemy)
-                        elseif ksspell == _W then 
-                            IsSpellValid = self:PredictCastW(enemy)
-                        elseif ksspell == _E then 
-                            IsSpellValid = self:PredictCastE(enemy)
-                        elseif ksspell == _R and menu.ks.numR <= self:GetEnemiesHitByR() then 
-                              IsSpellValid = self:PredictCastR(enemy)
-                        elseif ksspell == _IGNITE then 
-                            IsSpellValid = self:PredictCastI(enemy)
-                        end
-                    end
-                    if IsSpellValid and menu.ks.Debug then 
-                        PrintChat(enemy.charName.." is killable. "..self:ComboToString(Combo.combo)) 
-                        return 
-                    end
-                end
-            end
-        end
-    end
-
-end
-
 function Orianna:OnCombo()
 
     -- Fighting a single target
     if self.nearEnemyHeroes == 1 then
 
-        local target = getBestTarget(spells[_Q].range + spells[_Q].width)
+        local target = STS:GetTarget(spells[_Q].range + spells[_Q].width)
 
         -- No target found, return
         if not target then return end
 
-        -- -- Disable autoattacks due to danger or target being too close
-        -- if ((_GetDistanceSqr(target) < 300 * 300) or ((player.health / player.maxHealth < 0.25) and (player.health / player.maxHealth < target.health / target.maxHealth))) then
-        --     OW:DisableAttacks()
-        -- end
+        -- Disable autoattacks due to danger or target being too close
+        if ((_GetDistanceSqr(target) < 300 * 300) or ((player.health / player.maxHealth < 0.25) and (player.health / player.maxHealth < target.health / target.maxHealth))) then
+            OW:DisableAttacks()
+        end
 
         -- Cast Q
         if menu.combo.useQ and spells[_Q]:IsReady() then
@@ -635,7 +575,7 @@ function Orianna:OnCombo()
         end
 
         if menu.combo.ignite and _IGNITE then
-            local igniteTarget = getBestTarget(600)
+            local igniteTarget = STS:GetTarget(600)
             if igniteTarget and DLib:IsKillable(igniteTarget, self.mainCombo) then
                 CastSpell(_IGNITE, igniteTarget)
             end
@@ -644,17 +584,17 @@ function Orianna:OnCombo()
     -- Fighting multiple targets
     elseif self.nearEnemyHeroes > 1 then
 
-        local target = getBestTarget(spells[_Q].range + spells[_Q].width)
+        local target = STS:GetTarget(spells[_Q].range + spells[_Q].width)
 
         -- No target found, return
         if not target then return end
 
         -- Disable attacks due to danger mode or target too close
-        -- for _, enemy in ipairs(GetEnemyHeroes()) do
-        --     if ValidTarget(enemy, 300) and (player.health / player.maxHealth < 0.25) then
-        --         OW:DisableAttacks()
-        --     end
-        -- end
+        for _, enemy in ipairs(GetEnemyHeroes()) do
+            if ValidTarget(enemy, 300) and (player.health / player.maxHealth < 0.25) then
+                OW:DisableAttacks()
+            end
+        end
 
         -- Cast Q on best location
         if menu.combo.useQ and spells[_Q]:IsReady() then
@@ -728,7 +668,7 @@ function Orianna:OnCombo()
         end
 
         if menu.combo.ignite and _IGNITE then
-            local igniteTarget = getBestTarget(600)
+            local igniteTarget = STS:GetTarget(600)
             if igniteTarget and DLib:IsKillable(igniteTarget, self.mainCombo) then
                 CastSpell(_IGNITE, igniteTarget)
             end
@@ -738,15 +678,53 @@ function Orianna:OnCombo()
 end
 
 function Orianna:OnHarass()
+
     if menu.harass.mana > (player.mana / player.maxMana) * 100 or menu.harass.hp > (player.health / player.maxHealth) * 100 then return end
 
     if menu.harass.useQ and spells[_Q]:IsReady() then
-        self:PredictCastQ(getBestTarget(spells[_Q].range + spells[_Q].width))
+        self:PredictCastQ(STS:GetTarget(spells[_Q].range + spells[_Q].width))
     end
 
     if menu.harass.useW and spells[_W]:IsReady() then
         if self:GetEnemiesHitByW() > 0 then
             spells[_W]:Cast()
+        end
+    end
+
+end
+
+function Orianna:OnKillSteal()
+    if os.clock() - self.ksclock < 0.1 then return end
+    self.ksclock = os.clock()
+
+    for _, enemy in ipairs(GetEnemyHeroes()) do
+        if ValidTarget(enemy, spellData[_Q].range + spellData[_R].width)then
+            for i, Combo in ipairs(self.Kscombolist) do
+                local spellList = Combo.spells()
+                if spellList and DLib:IsKillable(enemy, Combo.combo) then 
+                    
+                    local IsSpellValid = false
+                    for _, ksspell in ipairs(spellList) do
+                        if ksspell == _AA then 
+                            player:Attack(enemy)
+                        elseif ksspell == _Q then 
+                            IsSpellValid = self:PredictCastQ(enemy)
+                        elseif ksspell == _W then 
+                            IsSpellValid = self:PredictCastW(enemy)
+                        elseif ksspell == _E then 
+                            IsSpellValid = self:PredictCastE(enemy)
+                        elseif ksspell == _R and menu.ks.numR <= self:GetEnemiesHitByR() then 
+                              IsSpellValid = self:PredictCastR(enemy)
+                        elseif ksspell == _IGNITE then 
+                            IsSpellValid = self:PredictCastI(enemy)
+                        end
+                    end
+                    if IsSpellValid and menu.ks.Debug then 
+                        PrintChat(enemy.charName.." is killable. "..self:ComboToString(Combo.combo)) 
+                        return 
+                    end
+                end
+            end
         end
     end
 
@@ -845,7 +823,7 @@ end
 function Orianna:PredictCastQ(target)
 
     -- No target found, return
-    if not target then return false end
+    if not target then return end
 
     -- Helpers
     local castPoint = nil
@@ -859,21 +837,21 @@ function Orianna:PredictCastQ(target)
     castPoint = castPosition
 
     -- Hitchance too low, return
-    if hitChance < 2 then return false end
+    if hitChance < 2 then return end
 
     -- Main target out of range, getting new target
     if _GetDistanceSqr(position) > spells[_Q].rangeSqr + (spellData[_W].width + VP:GetHitBox(target)) ^ 2 then
-        target2 = getBestTarget(spells[_Q].range + spellData[_W].width, 2)
+        target2 = STS:GetTarget(spells[_Q].range + spellData[_W].width + 250, 2)
         if target2 then
             spells[_Q]:SetRange(math.huge)
             castPoint = spells[_Q]:GetPrediction(target2)
             spells[_Q]:SetRange(spellData[_Q].range)
-        else return false end
+        else return end
     end
 
     -- Second target out of range aswell, return
     if _GetDistanceSqr(position) > spells[_Q].rangeSqr + (spellData[_W].width + VP:GetHitBox(target)) ^ 2 then
-        do return false end
+        do return end
     end
 
     -- EQ calculation for faster Q on target, only if enabled in menu
@@ -894,7 +872,7 @@ function Orianna:PredictCastQ(target)
 
         if minTravelTime < (menu.misc.EQ / 100) * travelTime and (not target.isMe or _GetDistanceSqr(self.ballPos) > 100 * 100) and _GetDistanceSqr(target) < _GetDistanceSqr(castPoint) then
             spells[_E]:Cast(target)
-            return false
+            return
         end
     end
 
@@ -905,7 +883,6 @@ function Orianna:PredictCastQ(target)
 
     -- Cast Q
     spells[_Q]:Cast(castPoint.x, castPoint.z)
-    return true
 
 end
 
@@ -1100,32 +1077,12 @@ function Orianna:OnCreateObj(object)
     if object.name:lower():find("yomu_ring_green") then
         self.ballPos = Vector(object)
         self.ballMoving = false
-    -- Ball back to player
+    -- Ball to hero
     elseif object.name:lower():find("orianna_ball_flash_reverse") then
         self.ballPos = player
         self.ballMoving = false
-    -- Ball to hero
-    elseif object.name:lower():find("oriana_ghost_bind_assaisin") then
-        self.ballMoving = false
-    -- recallcheack for autoHarass
-    elseif object.name:lower():find("teleporthome") and GetDistance(object) < 20 then
-        self.myRecall = true
     end
 
-end
-
-function Orianna:OnDeleteObj(object)
-    -- Validating
-    if not object or not object.name then return end
-    
-    -- ball pickup
-    if object.name:lower():find("yomu_ring_green") then
-        self.ballPos = player
-        self.ballMoving = false
-    -- recallcheack for autoHarass
-    elseif object.name:lower():find("teleporthome") and GetDistance(object) < 20 then
-        self.myRecall = false
-    end
 end
 
 function Orianna:OnProcessSpell(unit, spell)
@@ -1163,6 +1120,26 @@ function Orianna:OnProcessSpell(unit, spell)
 
 end
 
+function Orianna:OnGainBuff(unit, buff)
+
+    -- Validating
+    if not unit or not unit.team or not buff or not buff.name then return end
+
+    -- Ball applying to unit
+    if unit.team == player.team and (buff.name:lower():find("orianaghostself") or buff.name:lower():find("orianaghost")) then
+        self.ballPos = unit
+        self.ballMoving = false
+    end
+
+    if unit.isMe and ( buff.name:lower():find("recall") ) then myRecall = true end
+
+end
+
+function Orianna:OnLoseBuff(unit, buff)
+    if unit.isMe and ( buff.name:lower():find("recall") ) then myRecall = false end
+
+end
+
 function Orianna:OnCastSpell(p)
 
     if menu.misc.blockR then
@@ -1192,18 +1169,18 @@ function Orianna:ApplyMenu()
     menu.harass:addParam("useQ",   "Use Q",                    SCRIPT_PARAM_ONOFF, true)
     menu.harass:addParam("useW",   "Use W",                    SCRIPT_PARAM_ONOFF, false)
     menu.harass:addParam("sep",    "",                         SCRIPT_PARAM_INFO, "")
-    menu.harass:addParam("mana",   "Don't harass if mana < %", SCRIPT_PARAM_SLICE, 0, 0, 100)
     menu.harass:addParam("hp",     "Don't harass if hp < %", SCRIPT_PARAM_SLICE, 0, 0, 100)
+    menu.harass:addParam("mana",   "Don't harass if mana < %", SCRIPT_PARAM_SLICE, 0, 0, 100)
 
     menu:addSubMenu("KS", "ks")
-        menu.ks:addParam("Enable", "Smart Auto Kill",         SCRIPT_PARAM_ONOFF, true)
-        menu.ks:addParam("UseQ",   "Use Q",                   SCRIPT_PARAM_ONOFF, true)
-        menu.ks:addParam("UseW",   "Use W",                   SCRIPT_PARAM_ONOFF, true)
-        menu.ks:addParam("UseE",   "Use E",                   SCRIPT_PARAM_ONOFF, true)
-        menu.ks:addParam("UseR",   "Use R",                   SCRIPT_PARAM_ONOFF, true)
-        menu.ks:addParam("numR",   "Use R on",                SCRIPT_PARAM_LIST, 1, { "1+ target", "2+ targets", "3+ targets", "4+ targets" , "5+ targets" })
-        menu.ks:addParam("UseI",   "Use Ignite",              SCRIPT_PARAM_ONOFF, true)
-        menu.ks:addParam("Debug",  "Debug text",              SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("Enable", "Smart Auto Kill",         SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("UseQ",   "Use Q",                   SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("UseW",   "Use W",                   SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("UseE",   "Use E",                   SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("UseR",   "Use R",                   SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("numR",   "Use R on",                SCRIPT_PARAM_LIST, 1, { "1+ target", "2+ targets", "3+ targets", "4+ targets" , "5+ targets" })
+    menu.ks:addParam("UseI",   "Use Ignite",              SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("Debug",  "Debug text",              SCRIPT_PARAM_ONOFF, true)
 
     menu:addSubMenu("Misc", "misc")
         menu.misc:addSubMenu("Auto E on initiators", "autoE")
@@ -1224,7 +1201,6 @@ function Orianna:ApplyMenu()
             menu.misc.autoE:addParam("active", "Active", SCRIPT_PARAM_ONOFF, true)
         end
         menu.misc:addParam("autolv",    "Auto Level",                        SCRIPT_PARAM_ONOFF, true)
-        menu.misc:addParam("shield",    "Self Shield Use E",                 SCRIPT_PARAM_ONKEYDOWN, false, string.byte("E"))
         menu.misc:addParam("autoW",     "Auto W on",                         SCRIPT_PARAM_LIST, 1, { "Nope", "1+ target", "2+ targets", "3+ targets", "4+ targets", "5+ targets" })
         menu.misc:addParam("autoR",     "Auto R on",                         SCRIPT_PARAM_LIST, 1, { "Nope", "1+ target", "2+ targets", "3+ targets", "4+ targets", "5+ targets" })
         menu.misc:addParam("EQ",        "Use E + Q if tEQ < %x * tQ",        SCRIPT_PARAM_SLICE, 100, 0, 200)
@@ -1257,5 +1233,11 @@ function Orianna:ApplyMenu()
         DLib:AddToMenu(menu.drawing, self.mainCombo)
 
     menu:addParam("sep",  scriptName.." ver "..version .. "by wkair",                      SCRIPT_PARAM_INFO, "")
-    
+
 end  
+
+function Orianna:OnDraw( )
+    -- DrawText("ball moving : "..tostring(self.ballMoving), 20, 100, 100, ARGB(255,255,0,0) )
+    -- DrawText("recall state: "..tostring(myRecall)       , 20, 100, 120, ARGB(255,255,0,0) )
+    -- DrawText("ignite state: "..tostring(_IGNITE)       , 20, 100, 140, ARGB(255,255,0,0) )
+end
