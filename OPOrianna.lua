@@ -3,7 +3,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.12
+local version = 0.13
 
 local scriptName = "OPOrianna"
 
@@ -80,8 +80,6 @@ local champLoaded = false
 local skip        = false
 local myRecall    = false
 
-local skinNumber = nil
-
 local __colors = {
     { current = 255, step = 1, min = 0, max = 255, mode = -1 },
     { current = 255, step = 2, min = 0, max = 255, mode = -1 },
@@ -98,6 +96,11 @@ function OnLoad()
     STS  = SimpleTS()
     DM   = DrawManager()
     DLib = DamageLib()
+
+    if _IGNITE == nil then 
+        _IGNITE  = GetSummonerSlot("summonerdot")
+        DLib:RegisterDamageSource(_IGNITE, _TRUE, 0, 0, _TRUE, _AP, 0, function() return _IGNITE and (player:CanUseSpell(_IGNITE) == READY) end, function() return (50 + 20 * player.level) end)
+    end
 
     -- Load champion
     champ = champ()
@@ -177,16 +180,6 @@ function OnDraw()
     AAcircle.color[4] = __colors[3].current
     AAcircle.range    = OW:MyRange() 
 
-    -- Skin changer
-    if VIP_USER and menu.skin then
-        for i = 1, skinNumber do
-            if menu.skin["skin"..i] then
-                menu.skin["skin"..i] = false
-                GenModelPacket(player.charName, i - 1)
-            end
-        end
-    end
-
 end
 
 -- Spudgy please...
@@ -198,15 +191,6 @@ function OnDeleteObj(object) if champLoaded and champ.OnDeleteObj then champ:OnD
 
 function loadMenu()
     menu = MenuWrapper("[" .. scriptName .. "] " .. player.charName, "unique" .. player.charName:gsub("%s+", ""))
-
-    -- Skin changer
-    if VIP_USER and champ.GetSkins then
-        menu:GetHandle():addSubMenu("Skin Changer", "skin")
-        for i, name in ipairs(champ:GetSkins()) do
-            menu:GetHandle().skin:addParam("skin"..i, name, SCRIPT_PARAM_ONOFF, false)
-        end
-        skinNumber = #champ:GetSkins()
-    end
 
     menu:SetTargetSelector(STS)
     menu:SetOrbwalker(OW)
@@ -285,31 +269,6 @@ function __mixColors()
             color.mode = -1
         end
     end
-end
-
--- Credits to shalzuth for this!
-function GenModelPacket(champ, skinId)
-    p = CLoLPacket(0x97)
-    p:EncodeF(player.networkID)
-    p.pos = 1
-    t1 = p:Decode1()
-    t2 = p:Decode1()
-    t3 = p:Decode1()
-    t4 = p:Decode1()
-    p:Encode1(t1)
-    p:Encode1(t2)
-    p:Encode1(t3)
-    p:Encode1(bit32.band(t4,0xB))
-    p:Encode1(1)--hardcode 1 bitfield
-    p:Encode4(skinId)
-    for i = 1, #champ do
-        p:Encode1(string.byte(champ:sub(i,i)))
-    end
-    for i = #champ + 1, 64 do
-        p:Encode1(0)
-    end
-    p:Hide()
-    RecvPacket(p)
 end
 
 function GetPredictedPos(unit, delay, speed, source)
@@ -475,17 +434,6 @@ function Orianna:__init()
 
 end
 
--- Not working with Orianna, sorry guys :/
---[[function Orianna:GetSkins()
-    return {
-        "Classic",
-        "Gothic",
-        "Swen Chaos",
-        "Bladecraft",
-        "TPA"
-    }
-end]]
-
 function Orianna:OnTick()
     if menu.misc.autolv then autoLevelSetSequence(self.levelSequence) end
 
@@ -641,7 +589,7 @@ function Orianna:OnCombo()
     -- Fighting a single target
     if self.nearEnemyHeroes == 1 then
 
-        local target = STS:GetTarget(spells[_Q].range + spells[_Q].width)
+        local target = getBestTarget(spells[_Q].range + spells[_Q].width)
 
         -- No target found, return
         if not target then return end
@@ -688,7 +636,7 @@ function Orianna:OnCombo()
         end
 
         if menu.combo.ignite and _IGNITE then
-            local igniteTarget = STS:GetTarget(600)
+            local igniteTarget = getBestTarget(600)
             if igniteTarget and DLib:IsKillable(igniteTarget, self.mainCombo) then
                 CastSpell(_IGNITE, igniteTarget)
             end
@@ -697,7 +645,7 @@ function Orianna:OnCombo()
     -- Fighting multiple targets
     elseif self.nearEnemyHeroes > 1 then
 
-        local target = STS:GetTarget(spells[_Q].range + spells[_Q].width)
+        local target = getBestTarget(spells[_Q].range + spells[_Q].width)
 
         -- No target found, return
         if not target then return end
@@ -781,7 +729,7 @@ function Orianna:OnCombo()
         end
 
         if menu.combo.ignite and _IGNITE then
-            local igniteTarget = STS:GetTarget(600)
+            local igniteTarget = getBestTarget(600)
             if igniteTarget and DLib:IsKillable(igniteTarget, self.mainCombo) then
                 CastSpell(_IGNITE, igniteTarget)
             end
@@ -794,7 +742,7 @@ function Orianna:OnHarass()
     if menu.harass.mana > (player.mana / player.maxMana) * 100 or menu.harass.hp > (player.health / player.maxHealth) * 100 then return end
 
     if menu.harass.useQ and spells[_Q]:IsReady() then
-        self:PredictCastQ(STS:GetTarget(spells[_Q].range + spells[_Q].width))
+        self:PredictCastQ(getBestTarget(spells[_Q].range + spells[_Q].width))
     end
 
     if menu.harass.useW and spells[_W]:IsReady() then
@@ -916,7 +864,7 @@ function Orianna:PredictCastQ(target)
 
     -- Main target out of range, getting new target
     if _GetDistanceSqr(position) > spells[_Q].rangeSqr + (spellData[_W].width + VP:GetHitBox(target)) ^ 2 then
-        target2 = STS:GetTarget(spells[_Q].range + spellData[_W].width + 250, 2)
+        target2 = getBestTarget(spells[_Q].range + spellData[_W].width + 250, 2)
         if target2 then
             spells[_Q]:SetRange(math.huge)
             castPoint = spells[_Q]:GetPrediction(target2)
@@ -1309,22 +1257,6 @@ function Orianna:ApplyMenu()
         self.ballCircles[1]:AddToMenu(menu.drawing, "Ball position", true, true, true)
         DLib:AddToMenu(menu.drawing, self.mainCombo)
 
-
-    -- TickLimiter(function()  
-    --     if not VIP_USER then
-    --         for i = 1, player.buffCount do
-    --             local tBuff = player:getBuff(i)
-    --             if BuffIsValid(tBuff) then
-    --                 PrintChat(tostring(tBuff.name))
-    --             end
-    --         end
-    --         PrintChat("===================")
-    --         -- if TargetHaveBuff("orianaghostself") then
-    --         --     PrintChat("she has ball")
-    --         --     self.ballPos = player
-    --         --     self.ballMoving = false
-    --         -- end
-    --     end
-    -- end, 1)
-
+    menu:addParam("sep",  scriptName.." ver "..version .. "by wkair",                      SCRIPT_PARAM_INFO, "")
+    
 end  
