@@ -2,15 +2,12 @@ if myHero.charName ~= "Orianna" then return end
 
 local version = 0.18
 local AUTOUPDATE = true
-local scriptName = "OPOrianna"
+local SCRIPT_NAME = "OPOrianna"
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-if AUTOUPDATE then
-    SourceUpdater(scriptName, version, "raw.github.com", "/wkair/OPOrianna/master/" .. scriptName .. ".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/wkair/OPOrianna/master/version.txt"):SetSilent(false):CheckUpdate()
-end
 -- / Lib Auto-Update Function / --
 local lib_Required = {
 	["SourceLib"]	= "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua",
@@ -44,6 +41,9 @@ function AfterDownload()
 	end
 end
 
+if AUTOUPDATE then
+	 SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/wkair/OPOrianna/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/wkair/OPOrianna/master/version.txt"):CheckUpdate()
+end
 -- / Lib Auto-Update Function / --
 
 
@@ -767,9 +767,6 @@ function OnTickChecks()
 	else
 		ComboMode = _TF
 	end
-	
-
-	RefreshKillableTexts()
 
 	if not VIP_USER and Menu.Misc.predType == 1 then
 		Menu.Misc.predType = 2
@@ -1101,36 +1098,6 @@ function OnSendPacket(p)
 		end
 	end
 end
---[[Drawing stuff: ]]
-
---[[Update the bar texts]]
-function RefreshKillableTexts()
-	if ((os.clock() - lastrefresh) > 0.3) and Menu.Drawing.DrawDamage then
-		for i=1, heroManager.iCount do
-			local enemy = heroManager:GetHero(i)
-			if ValidTarget(enemy) then
-				DamageToHeros[i] =  GetComboDamage(MainCombo, enemy) 
-			end
-		end
-		lastrefresh = os.clock()
-	end
-end
-	
---[[	Credits to zikkah	]]
-
-function DrawOnHPBar(enemy, damage)
-    local SPos, EPos = GetEnemyHPBarPos(enemy)
-
-    -- Validate data
-    if not SPos then return end
-
-    local barwidth = EPos.x - SPos.x
-    local Position = SPos.x + math.max(0, (enemy.health - damage) / enemy.maxHealth) * barwidth
-
-    DrawText("|", 16, math.floor(Position), math.floor(SPos.y + 8), ARGB(255,0,255,0))
-    DrawText("HP: "..math.floor(enemy.health - damage), 13, math.floor(SPos.x), math.floor(SPos.y), (enemy.health - damage) > 0 and ARGB(255, 0, 255, 0) or  ARGB(255, 255, 0, 0))
-
-end
 
 function OnDraw()	
 	if myHero.dead then return end
@@ -1141,6 +1108,7 @@ function OnDraw()
 	if Circle_R and Circle_R.enabled then
 		Circle_R.position = BallPos
 	end
+	
 	if Menu.Harass.DrawAh then
 		if Menu.Harass.Enabled2 then
 			local pos = GetUnitHPBarPos(myHero)
@@ -1149,17 +1117,6 @@ function OnDraw()
 
 			DrawText(tostring("Auto Harass"), 16, pos.x+1, pos.y+1, ARGB(255, 0, 0, 0))
 			DrawText(tostring("Auto Harass"), 16, pos.x, pos.y, ARGB(255, 255, 255, 255))
-		end
-	end
-	--[[HealthBar HP tracker]]
-	if Menu.Drawing.DrawDamage then
-		for i=1, heroManager.iCount do
-			local enemy = heroManager:GetHero(i)
-			if ValidTarget(enemy) then
-				if DamageToHeros[i] ~= nil then
-					DrawOnHPBar(enemy, math.floor(DamageToHeros[i]))
-				end
-			end
 		end
 	end
 end
