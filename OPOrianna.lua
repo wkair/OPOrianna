@@ -765,7 +765,7 @@ function Orianna:OnFarm()
     if useQ then
         if useW then
             local hitNum = 0
-            local castPosition = 0
+            local castPosition = player
             for _, minion in ipairs(self.enemyMinions.objects) do
                 if _GetDistanceSqr(minion) < spells[_Q].rangeSqr and _GetDistanceSqr(castPosition) < _GetDistanceSqr(minion)  then
                     local minionPosition = GetPredictedPos(minion, spells[_Q].delay, spells[_Q].speed, self.ballPos)
