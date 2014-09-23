@@ -3,7 +3,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.13
+local version = 0.14
 
 local scriptName = "OPOrianna"
 
@@ -237,13 +237,12 @@ function initializeSpells()
     end
 end
 
-function getBestTarget(range, condition)
-    condition = condition or function() return true end
+function getBestTarget(range)
     local target = STS:GetTarget(range)
-    if not target or not condition(target) then
+    if not target then
         target = nil
         for _, enemy in ipairs(GetEnemyHeroes()) do
-            if ValidTarget(enemy, range) and condition(enemy) then
+            if ValidTarget(enemy, range) then
                 if not target or enemy.health < target.health then
                     target = enemy
                 end
