@@ -3,7 +3,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.14
+local version = 0.15
 
 local scriptName = "OPOrianna"
 
@@ -566,7 +566,7 @@ function Orianna:OnKillSteal()
                             IsSpellValid = self:PredictCastW(enemy)
                         elseif ksspell == _E then 
                             IsSpellValid = self:PredictCastE(enemy)
-                        elseif ksspell == _R and menu.ks.numR >= self:GetEnemiesHitByR() then 
+                        elseif ksspell == _R and menu.ks.numR <= self:GetEnemiesHitByR() then 
                               IsSpellValid = self:PredictCastR(enemy)
                         elseif ksspell == _IGNITE then 
                             IsSpellValid = self:PredictCastI(enemy)
@@ -863,7 +863,7 @@ function Orianna:PredictCastQ(target)
 
     -- Main target out of range, getting new target
     if _GetDistanceSqr(position) > spells[_Q].rangeSqr + (spellData[_W].width + VP:GetHitBox(target)) ^ 2 then
-        target2 = getBestTarget(spells[_Q].range + spellData[_W].width + 250, 2)
+        target2 = getBestTarget(spells[_Q].range + spellData[_W].width, 2)
         if target2 then
             spells[_Q]:SetRange(math.huge)
             castPoint = spells[_Q]:GetPrediction(target2)
