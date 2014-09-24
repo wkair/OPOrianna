@@ -49,11 +49,10 @@ ScriptName = scriptName
 
 -- Thank you to Roach and Bilbao for the support!
 assert(load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKAAAAAAAAAAAAAQIDAAAAJQAAAAgAAIAfAIAAAQAAAAQKAAAAVXBkYXRlV2ViAAEAAAACAAAADAAAAAQAETUAAAAGAUAAQUEAAB2BAAFGgUAAh8FAAp0BgABdgQAAjAHBAgFCAQBBggEAnUEAAhsAAAAXwAOAjMHBAgECAgBAAgABgUICAMACgAEBgwIARsNCAEcDwwaAA4AAwUMDAAGEAwBdgwACgcMDABaCAwSdQYABF4ADgIzBwQIBAgQAQAIAAYFCAgDAAoABAYMCAEbDQgBHA8MGgAOAAMFDAwABhAMAXYMAAoHDAwAWggMEnUGAAYwBxQIBQgUAnQGBAQgAgokIwAGJCICBiIyBxQKdQQABHwCAABcAAAAECAAAAHJlcXVpcmUABAcAAABzb2NrZXQABAcAAABhc3NlcnQABAQAAAB0Y3AABAgAAABjb25uZWN0AAQQAAAAYm9sLXRyYWNrZXIuY29tAAMAAAAAAABUQAQFAAAAc2VuZAAEGAAAAEdFVCAvcmVzdC9uZXdwbGF5ZXI/aWQ9AAQHAAAAJmh3aWQ9AAQNAAAAJnNjcmlwdE5hbWU9AAQHAAAAc3RyaW5nAAQFAAAAZ3N1YgAEDQAAAFteMC05QS1aYS16XQAEAQAAAAAEJQAAACBIVFRQLzEuMA0KSG9zdDogYm9sLXRyYWNrZXIuY29tDQoNCgAEGwAAAEdFVCAvcmVzdC9kZWxldGVwbGF5ZXI/aWQ9AAQCAAAAcwAEBwAAAHN0YXR1cwAECAAAAHBhcnRpYWwABAgAAAByZWNlaXZlAAQDAAAAKmEABAYAAABjbG9zZQAAAAAAAQAAAAAAEAAAAEBvYmZ1c2NhdGVkLmx1YQA1AAAAAgAAAAIAAAACAAAAAgAAAAIAAAACAAAAAgAAAAMAAAADAAAAAwAAAAMAAAAEAAAABAAAAAUAAAAFAAAABQAAAAYAAAAGAAAABwAAAAcAAAAHAAAABwAAAAcAAAAHAAAABwAAAAgAAAAHAAAABQAAAAgAAAAJAAAACQAAAAkAAAAKAAAACgAAAAsAAAALAAAACwAAAAsAAAALAAAACwAAAAsAAAAMAAAACwAAAAkAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAGAAAAAgAAAGEAAAAAADUAAAACAAAAYgAAAAAANQAAAAIAAABjAAAAAAA1AAAAAgAAAGQAAAAAADUAAAADAAAAX2EAAwAAADUAAAADAAAAYWEABwAAADUAAAABAAAABQAAAF9FTlYAAQAAAAEAEAAAAEBvYmZ1c2NhdGVkLmx1YQADAAAADAAAAAIAAAAMAAAAAAAAAAEAAAAFAAAAX0VOVgA="), nil, "bt", _ENV))()
---[[ Class initializing ]]
 
 --===================================================================================
 
-
+--[[ Class initializing ]]
 
 for k, _ in pairs(champions) do
     local className = k:gsub("%s+", "")
@@ -349,15 +348,15 @@ function Orianna:__init()
     --ks
     self.ksclock = 0
     self.Kscombolist ={
-        {combo = {_E,_AA}      , spells = function() return (menu.ks.UseE and spells[_E]:IsReady()) and {_E} or nil end },  
         {combo = {_Q}          , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady()) and {_Q} or nil end },                 
-        {combo = {_W}          , spells = function() return (menu.ks.UseW and spells[_W]:IsReady()) and {_W} or nil end },              
         {combo = {_Q,_W}       , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_Q} or nil end },              
+        {combo = {_Q,_R}       , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() ) and {_Q} or nil end },              
+        {combo = {_Q,_R,_W}    , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_Q} or nil end },              
+        {combo = {_E,_AA}      , spells = function() return (menu.ks.UseE and spells[_E]:IsReady()) and {_E} or nil end },  
+        {combo = {_W}          , spells = function() return (menu.ks.UseW and spells[_W]:IsReady()) and {_W} or nil end },              
         {combo = {_W,_Q}       , spells = function() return (menu.ks.UseQ and not spells[_Q]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_W} or nil end },              
         {combo = {_R}          , spells = function() return (menu.ks.UseR and spells[_R]:IsReady() and self:GetEnemiesHitByR() >= menu.ks.numR) and {_R} or nil end },              
-        {combo = {_Q,_R}       , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() ) and {_Q} or nil end },              
         {combo = {_R,_W}       , spells = function() return (menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_R,_W} or nil end },              
-        {combo = {_Q,_R,_W}    , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_Q} or nil end },              
         {combo = {_IGNITE}     , spells = function() return (_IGNITE and menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY) and {_IGNITE} or nil end },              
         {combo = {_IGNITE,_Q}  , spells = function() return (_IGNITE and menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY and menu.ks.UseQ and spells[_Q]:IsReady()) and {_IGNITE,_Q} or nil end },              
     }
@@ -735,9 +734,9 @@ function Orianna:OnKillSteal()
             for i, Combo in ipairs(self.Kscombolist) do
                 local spellList = Combo.spells()
                 if spellList and DLib:IsKillable(enemy, Combo.combo) then 
-                    
-                    local IsSpellValid = false
                     for _, ksspell in ipairs(spellList) do
+
+                        local IsSpellValid = false
                         if ksspell == _AA then 
                             player:Attack(enemy)
                         elseif ksspell == _Q then 
@@ -751,10 +750,11 @@ function Orianna:OnKillSteal()
                         elseif ksspell == _IGNITE then 
                             IsSpellValid = self:PredictCastI(enemy)
                         end
-                    end
-                    if IsSpellValid and menu.ks.Debug then 
-                        PrintChat(enemy.charName.." is killable. "..self:ComboToString(Combo.combo)) 
-                        return 
+
+                        if IsSpellValid and menu.ks.Debug then 
+                            PrintChat("[Processing KS] [Target: "..enemy.charName.."] [spell: "..self:SpellToString(ksspell).."] combo: "..self:ComboToString(Combo.combo)) 
+                        end
+
                     end
                 end
             end
@@ -855,8 +855,8 @@ end
 
 function Orianna:PredictCastQ(target)
 
-    -- No target found, return
-    if not target then return end
+    -- No target found, return false
+    if not target then return false end
 
     -- Helpers
     local castPoint = nil
@@ -869,8 +869,8 @@ function Orianna:PredictCastQ(target)
     -- Update castPoint
     castPoint = castPosition
 
-    -- Hitchance too low, return
-    if hitChance < 2 then return end
+    -- Hitchance too low, return false
+    if hitChance < 2 then return false end
 
     -- Main target out of range, getting new target
     if _GetDistanceSqr(position) > spells[_Q].rangeSqr + (spellData[_W].width + VP:GetHitBox(target)) ^ 2 then
@@ -879,12 +879,12 @@ function Orianna:PredictCastQ(target)
             spells[_Q]:SetRange(math.huge)
             castPoint = spells[_Q]:GetPrediction(target2)
             spells[_Q]:SetRange(spellData[_Q].range)
-        else return end
+        else return false end
     end
 
-    -- Second target out of range aswell, return
+    -- Second target out of range aswell, return false
     if _GetDistanceSqr(position) > spells[_Q].rangeSqr + (spellData[_W].width + VP:GetHitBox(target)) ^ 2 then
-        do return end
+        do return false end
     end
 
     -- EQ calculation for faster Q on target, only if enabled in menu
@@ -905,7 +905,7 @@ function Orianna:PredictCastQ(target)
 
         if minTravelTime < (menu.misc.EQ / 100) * travelTime and (not target.isMe or _GetDistanceSqr(self.ballPos) > 100 * 100) and _GetDistanceSqr(target) < _GetDistanceSqr(castPoint) then
             spells[_E]:Cast(target)
-            return
+            return false
         end
     end
 
@@ -916,6 +916,7 @@ function Orianna:PredictCastQ(target)
 
     -- Cast Q
     spells[_Q]:Cast(castPoint.x, castPoint.z)
+    return true
 
 end
 
@@ -1279,7 +1280,11 @@ function Orianna:OnDraw( )
     -- DrawText("ball moving : "..tostring(self.ballMoving), 20, 100, 100, ARGB(255,255,0,0) )
     -- DrawText("recall state: "..tostring(myRecall)       , 20, 100, 120, ARGB(255,255,0,0) )
     -- DrawText("ignite state: "..tostring(_IGNITE)       , 20, 100, 140, ARGB(255,255,0,0) )
-    if menu.drawing.Qline and GetDistance(mousePos) < spellData[_Q].range + 50 and not self.ballMoving then
-        DrawLine3D(self.ballPos.x, self.ballPos.y, self.ballPos.z, mousePos.x, mousePos.y, mousePos.z, 10, spells[_Q]:IsReady() and ARGB(80,50,240,50) or ARGB(80,240,50,50) )
+    if menu.drawing.Qline and not self.ballMoving then
+        if GetDistance(mousePos) < spellData[_Q].range + 50 then
+            DrawLine3D(self.ballPos.x, self.ballPos.y, self.ballPos.z, mousePos.x, mousePos.y, mousePos.z, 10, spells[_Q]:IsReady() and ARGB(60,50,240,50) or ARGB(60,240,50,50) )
+        elseif GetDistance(mousePos) < spellData[_Q].range +600 then
+            DrawLine3D(self.ballPos.x, self.ballPos.y, self.ballPos.z, mousePos.x, mousePos.y, mousePos.z, 10, ARGB(60,240,240,240))
+        end
     end
 end
