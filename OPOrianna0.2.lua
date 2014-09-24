@@ -1,4 +1,4 @@
-local autoUpdate   = false
+local autoUpdate   = true
 local silentUpdate = false
 
 local version = 0.2

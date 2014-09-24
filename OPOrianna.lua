@@ -1,7 +1,7 @@
-local autoUpdate   = false
+local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.21
+local version = 0.2
 
 local scriptName = "OPOrianna"
 
@@ -349,15 +349,15 @@ function Orianna:__init()
     --ks
     self.ksclock = 0
     self.Kscombolist ={
-        {combo = {_Q,_R,_W}    , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_Q} or nil end },
-        {combo = {_R,_W}       , spells = function() return (menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_R,_W} or nil end },              
-        {combo = {_Q,_R}       , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() ) and {_Q} or nil end },              
-        {combo = {_R}          , spells = function() return (menu.ks.UseR and spells[_R]:IsReady()) and {_R} or nil end },              
-        {combo = {_Q,_W}       , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_Q} or nil end },              
-        {combo = {_W,_Q}       , spells = function() return (menu.ks.UseQ and not spells[_Q]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_W} or nil end },                                            
         {combo = {_E,_AA}      , spells = function() return (menu.ks.UseE and spells[_E]:IsReady()) and {_E} or nil end },  
         {combo = {_Q}          , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady()) and {_Q} or nil end },                 
         {combo = {_W}          , spells = function() return (menu.ks.UseW and spells[_W]:IsReady()) and {_W} or nil end },              
+        {combo = {_Q,_W}       , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_Q} or nil end },              
+        {combo = {_W,_Q}       , spells = function() return (menu.ks.UseQ and not spells[_Q]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_W} or nil end },              
+        {combo = {_R}          , spells = function() return (menu.ks.UseR and spells[_R]:IsReady() and self:GetEnemiesHitByR() >= menu.ks.numR) and {_R} or nil end },              
+        {combo = {_Q,_R}       , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() ) and {_Q} or nil end },              
+        {combo = {_R,_W}       , spells = function() return (menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_R,_W} or nil end },              
+        {combo = {_Q,_R,_W}    , spells = function() return (menu.ks.UseQ and spells[_Q]:IsReady() and menu.ks.UseR and spells[_R]:IsReady() and menu.ks.UseW and spells[_W]:IsReady()) and {_Q} or nil end },              
         {combo = {_IGNITE}     , spells = function() return (_IGNITE and menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY) and {_IGNITE} or nil end },              
         {combo = {_IGNITE,_Q}  , spells = function() return (_IGNITE and menu.ks.UseI and player:CanUseSpell(_IGNITE) == READY and menu.ks.UseQ and spells[_Q]:IsReady()) and {_IGNITE,_Q} or nil end },              
     }
@@ -465,8 +465,6 @@ function Orianna:OnTick()
     if menu.jfarm.active then
         self:OnJungleFarm()
     end
-
-    if menu.misc.sheild then spells[_E]:Cast(player) end
 
     -- Auto E initiators
     if menu.misc.autoE.active and spells[_E]:IsReady() then
@@ -736,10 +734,9 @@ function Orianna:OnKillSteal()
             for i, Combo in ipairs(self.Kscombolist) do
                 local spellList = Combo.spells()
                 if spellList and DLib:IsKillable(enemy, Combo.combo) then 
+                    
+                    local IsSpellValid = false
                     for _, ksspell in ipairs(spellList) do
-
-                        local IsSpellValid = false
-
                         if ksspell == _AA then 
                             player:Attack(enemy)
                         elseif ksspell == _Q then 
@@ -753,11 +750,10 @@ function Orianna:OnKillSteal()
                         elseif ksspell == _IGNITE then 
                             IsSpellValid = self:PredictCastI(enemy)
                         end
-
-                        if IsSpellValid and menu.ks.Debug then 
-                            PrintChat("[processing ks] [target: "..enemy.charName.."] "..self:SpellToString(ksspell).." in "..self:ComboToString(Combo.combo) ) 
-                        end
-
+                    end
+                    if IsSpellValid and menu.ks.Debug then 
+                        PrintChat(enemy.charName.." is killable. "..self:ComboToString(Combo.combo)) 
+                        return 
                     end
                 end
             end
@@ -1200,14 +1196,13 @@ function Orianna:ApplyMenu()
     menu.combo:addParam("sep",    "",                        SCRIPT_PARAM_INFO, "")
     menu.combo:addParam("ignite", "Use ignite",              SCRIPT_PARAM_ONOFF, true)
 
-    menu.harass:addParam("toggle", "Harass toggle",              SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
-    menu.harass:addParam("show",   "toggle state on screen(F9)", SCRIPT_PARAM_ONOFF, true)
-    menu.harass:addParam("sep",    "",                           SCRIPT_PARAM_INFO, "")
-    menu.harass:addParam("useQ",   "Use Q",                      SCRIPT_PARAM_ONOFF, true)
-    menu.harass:addParam("useW",   "Use W",                      SCRIPT_PARAM_ONOFF, false)
-    menu.harass:addParam("sep",    "",                           SCRIPT_PARAM_INFO, "")
-    menu.harass:addParam("hp",     "Don't harass if hp < %",     SCRIPT_PARAM_SLICE, 0, 0, 100)
-    menu.harass:addParam("mana",   "Don't harass if mana < %",   SCRIPT_PARAM_SLICE, 0, 0, 100)
+    menu.harass:addParam("toggle", "Harass toggle",            SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
+    menu.harass:addParam("sep",    "",                         SCRIPT_PARAM_INFO, "")
+    menu.harass:addParam("useQ",   "Use Q",                    SCRIPT_PARAM_ONOFF, true)
+    menu.harass:addParam("useW",   "Use W",                    SCRIPT_PARAM_ONOFF, false)
+    menu.harass:addParam("sep",    "",                         SCRIPT_PARAM_INFO, "")
+    menu.harass:addParam("hp",     "Don't harass if hp < %", SCRIPT_PARAM_SLICE, 0, 0, 100)
+    menu.harass:addParam("mana",   "Don't harass if mana < %", SCRIPT_PARAM_SLICE, 0, 0, 100)
 
     menu:addSubMenu("KS", "ks")
     menu.ks:addParam("Enable", "Smart Auto Kill",         SCRIPT_PARAM_ONOFF, true)
@@ -1237,7 +1232,6 @@ function Orianna:ApplyMenu()
             menu.misc.autoE:addParam("sep",    "",       SCRIPT_PARAM_INFO, "")
             menu.misc.autoE:addParam("active", "Active", SCRIPT_PARAM_ONOFF, true)
         end
-        menu.misc.addParam("sheild",    "self sheild",                       SCRIPT_PARAM_ONKEYDOWN, false, string.byte("E"))
         menu.misc:addParam("autolv",    "Auto Level",                        SCRIPT_PARAM_ONOFF, true)
         menu.misc:addParam("autoW",     "Auto W on",                         SCRIPT_PARAM_LIST, 1, { "Nope", "1+ target", "2+ targets", "3+ targets", "4+ targets", "5+ targets" })
         menu.misc:addParam("autoR",     "Auto R on",                         SCRIPT_PARAM_LIST, 1, { "Nope", "1+ target", "2+ targets", "3+ targets", "4+ targets", "5+ targets" })
@@ -1272,9 +1266,7 @@ function Orianna:ApplyMenu()
 
         DLib:AddToMenu(menu.drawing, self.mainCombo)
 
-    menu:addParam("sep",  scriptName.." version "..version ,   SCRIPT_PARAM_INFO, "")
-
-    if menu.harass.show then menu.harass:permaShow("toggle") end
+    menu:addParam("sep",  scriptName.." ver "..version .. "by wkair",                      SCRIPT_PARAM_INFO, "")
 
 end  
 
@@ -1282,11 +1274,7 @@ function Orianna:OnDraw( )
     -- DrawText("ball moving : "..tostring(self.ballMoving), 20, 100, 100, ARGB(255,255,0,0) )
     -- DrawText("recall state: "..tostring(myRecall)       , 20, 100, 120, ARGB(255,255,0,0) )
     -- DrawText("ignite state: "..tostring(_IGNITE)       , 20, 100, 140, ARGB(255,255,0,0) )
-    if menu.drawing.Qline and not self.ballMoving then
-        if GetDistance(mousePos) < spellData[_Q].range + 50 then
-            DrawLine3D(self.ballPos.x, self.ballPos.y, self.ballPos.z, mousePos.x, mousePos.y, mousePos.z, 10, spells[_Q]:IsReady() and ARGB(80,50,240,50) or ARGB(80,240,50,50) )
-        elseif GetDistance(mousePos) < spellData[_Q].range + 600 then
-            DrawLine3D(self.ballPos.x, self.ballPos.y, self.ballPos.z, mousePos.x, mousePos.y, mousePos.z, 10, ARGB(80,220,220,220) )
-        end
+    if menu.drawing.Qline and GetDistance(mousePos) < spellData[_Q].range + 50 and not self.ballMoving then
+        DrawLine3D(self.ballPos.x, self.ballPos.y, self.ballPos.z, mousePos.x, mousePos.y, mousePos.z, 10, spells[_Q]:IsReady() and ARGB(80,50,240,50) or ARGB(80,240,50,50) )
     end
 end
