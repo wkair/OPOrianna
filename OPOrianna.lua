@@ -1247,7 +1247,7 @@ function Orianna:ApplyMenu()
 
     menu:addSubMenu("Drawing", "drawing")
         -- Auto attack range circle
-        AAcircle = DM:CreateCircle(player, OW:MyRange(), 3)
+        AAcircle = DM:CreateCircle(player, 525 + VP:GetHitBox(player) - 20, 3)
         AAcircle:AddToMenu(menu.drawing,            "AA Range", true, true, true)
         circles[_Q]:AddToMenu(menu.drawing,         "Q range" , true, true, true)
         self.ballCircles[2]:AddToMenu(menu.drawing, "W width" , true, true, true)
