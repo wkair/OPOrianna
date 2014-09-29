@@ -83,12 +83,6 @@ local champLoaded = false
 local skip        = false
 local myRecall    = false
 
-local __colors = {
-    { current = 255, step = 1, min = 0, max = 255, mode = -1 },
-    { current = 255, step = 2, min = 0, max = 255, mode = -1 },
-    { current = 255, step = 3, min = 0, max = 255, mode = -1 },
-}
-
 --[[ General Callbacks ]]--
 
 function OnBugsplat()
@@ -121,9 +115,6 @@ function OnLoad()
 
     -- Prevent errors
     if not champ then print("There was an error while loading " .. player.charName .. ", please report the shown error to Hellsing, thanks!") return else champLoaded = true end
-
-    -- Auto attack range circle
-    AAcircle = DM:CreateCircle(player, player.range, 3)
 
     -- Load menu
     loadMenu()
@@ -190,12 +181,6 @@ function OnDraw()
     -- if champ.OnDraw then
     --     champ:OnDraw()
     -- end
-
-    __mixColors()
-    AAcircle.color[2] = __colors[1].current
-    AAcircle.color[3] = __colors[2].current
-    AAcircle.color[4] = __colors[3].current
-
 end
 
 -- Spudgy please...
@@ -1198,7 +1183,7 @@ function Orianna:ApplyMenu()
     menu.combo:addParam("sep",    "",                        SCRIPT_PARAM_INFO, "")
     menu.combo:addParam("ignite", "Use ignite",              SCRIPT_PARAM_ONOFF, true)
 
-    menu.harass:addParam("toggle", "Harass toggle",             SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("L"))
+    menu.harass:addParam("toggle", "Harass toggle",             SCRIPT_PARAM_ONKEYTOGGLE, false, string.byte("H"))
     menu.harass:addParam("show",   "toggle state on screen(F9)",SCRIPT_PARAM_ONOFF, true)
     menu.harass:addParam("sep",    "",                          SCRIPT_PARAM_INFO, "")
     menu.harass:addParam("useQ",   "Use Q",                     SCRIPT_PARAM_ONOFF, true)
@@ -1215,7 +1200,7 @@ function Orianna:ApplyMenu()
     menu.ks:addParam("UseR",   "Use R",                   SCRIPT_PARAM_ONOFF, true)
     menu.ks:addParam("numR",   "Use R on",                SCRIPT_PARAM_LIST, 1, { "1+ target", "2+ targets", "3+ targets", "4+ targets" , "5+ targets" })
     menu.ks:addParam("UseI",   "Use Ignite",              SCRIPT_PARAM_ONOFF, true)
-    menu.ks:addParam("Debug",  "Debug text",              SCRIPT_PARAM_ONOFF, true)
+    menu.ks:addParam("Debug",  "Debug text",              SCRIPT_PARAM_ONOFF, false)
 
     menu:addSubMenu("Misc", "misc")
         menu.misc:addSubMenu("Auto E on initiators", "autoE")
@@ -1261,10 +1246,12 @@ function Orianna:ApplyMenu()
         menu.jfarm:addParam("useE",   "Use E",                 SCRIPT_PARAM_ONOFF, true)
 
     menu:addSubMenu("Drawing", "drawing")
-        AAcircle:AddToMenu(menu.drawing,            "AA Range", false, true, true)
-        circles[_Q]:AddToMenu(menu.drawing,         "Q range", true, true, true)
-        self.ballCircles[2]:AddToMenu(menu.drawing, "W width", true, true, true)
-        self.ballCircles[3]:AddToMenu(menu.drawing, "R width", true, true, true)
+        -- Auto attack range circle
+        AAcircle = DM:CreateCircle(player, OW:MyRange(), 3)
+        AAcircle:AddToMenu(menu.drawing,            "AA Range", true, true, true)
+        circles[_Q]:AddToMenu(menu.drawing,         "Q range" , true, true, true)
+        self.ballCircles[2]:AddToMenu(menu.drawing, "W width" , true, true, true)
+        self.ballCircles[3]:AddToMenu(menu.drawing, "R width" , true, true, true)
         self.ballCircles[1]:AddToMenu(menu.drawing, "Ball position", true, true, true)
         menu.drawing:addParam("Qline",   "Draw Q casting line",SCRIPT_PARAM_ONOFF, true)
 
