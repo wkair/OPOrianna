@@ -1,7 +1,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.22
+local version = 0.21
 
 local scriptName = "OPOrianna"
 
@@ -314,8 +314,8 @@ function Orianna:__init()
     -- Finetune spells
     spells[_E]:SetSkillshot(VP, SKILLSHOT_LINEAR, spellData[_E].width, spellData[_E].delay, spellData[_E].speed, false)
     spells[_E].skillshotType = nil
-    spells[_W].packetCast = false
-    spells[_R].packetCast = false
+    spells[_W].packetCast = true
+    spells[_R].packetCast = true
 
     -- Circle customization
     circles[_Q].color = { 255, 255, 100, 0 }
