@@ -1,7 +1,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.23
+local version = 0.24
 
 local scriptName = "OPOrianna"
 
@@ -34,6 +34,23 @@ libDownloader:Add("SOW",         "https://raw.github.com/Hellsing/BoL/master/com
 libDownloader:Check()
 
 if libDownloader.downloadNeeded then return end
+
+
+
+--bol-tracker======================================================================
+
+-- These variables need to be near the top of your script so you can call them in your callbacks.
+HWID = Base64Encode(tostring(os.getenv("PROCESSOR_IDENTIFIER")..os.getenv("USERNAME")..os.getenv("COMPUTERNAME")..os.getenv("PROCESSOR_LEVEL")..os.getenv("PROCESSOR_REVISION")))
+-- DO NOT CHANGE. This is set to your proper ID.
+id = 268
+
+-- CHANGE ME. Make this the exact same name as the script you added into the site!
+ScriptName = scriptName
+
+-- Thank you to Roach and Bilbao for the support!
+assert(load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKAAAAAAAAAAAAAQIDAAAAJQAAAAgAAIAfAIAAAQAAAAQKAAAAVXBkYXRlV2ViAAEAAAACAAAADAAAAAQAETUAAAAGAUAAQUEAAB2BAAFGgUAAh8FAAp0BgABdgQAAjAHBAgFCAQBBggEAnUEAAhsAAAAXwAOAjMHBAgECAgBAAgABgUICAMACgAEBgwIARsNCAEcDwwaAA4AAwUMDAAGEAwBdgwACgcMDABaCAwSdQYABF4ADgIzBwQIBAgQAQAIAAYFCAgDAAoABAYMCAEbDQgBHA8MGgAOAAMFDAwABhAMAXYMAAoHDAwAWggMEnUGAAYwBxQIBQgUAnQGBAQgAgokIwAGJCICBiIyBxQKdQQABHwCAABcAAAAECAAAAHJlcXVpcmUABAcAAABzb2NrZXQABAcAAABhc3NlcnQABAQAAAB0Y3AABAgAAABjb25uZWN0AAQQAAAAYm9sLXRyYWNrZXIuY29tAAMAAAAAAABUQAQFAAAAc2VuZAAEGAAAAEdFVCAvcmVzdC9uZXdwbGF5ZXI/aWQ9AAQHAAAAJmh3aWQ9AAQNAAAAJnNjcmlwdE5hbWU9AAQHAAAAc3RyaW5nAAQFAAAAZ3N1YgAEDQAAAFteMC05QS1aYS16XQAEAQAAAAAEJQAAACBIVFRQLzEuMA0KSG9zdDogYm9sLXRyYWNrZXIuY29tDQoNCgAEGwAAAEdFVCAvcmVzdC9kZWxldGVwbGF5ZXI/aWQ9AAQCAAAAcwAEBwAAAHN0YXR1cwAECAAAAHBhcnRpYWwABAgAAAByZWNlaXZlAAQDAAAAKmEABAYAAABjbG9zZQAAAAAAAQAAAAAAEAAAAEBvYmZ1c2NhdGVkLmx1YQA1AAAAAgAAAAIAAAACAAAAAgAAAAIAAAACAAAAAgAAAAMAAAADAAAAAwAAAAMAAAAEAAAABAAAAAUAAAAFAAAABQAAAAYAAAAGAAAABwAAAAcAAAAHAAAABwAAAAcAAAAHAAAABwAAAAgAAAAHAAAABQAAAAgAAAAJAAAACQAAAAkAAAAKAAAACgAAAAsAAAALAAAACwAAAAsAAAALAAAACwAAAAsAAAAMAAAACwAAAAkAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAMAAAADAAAAAwAAAAGAAAAAgAAAGEAAAAAADUAAAACAAAAYgAAAAAANQAAAAIAAABjAAAAAAA1AAAAAgAAAGQAAAAAADUAAAADAAAAX2EAAwAAADUAAAADAAAAYWEABwAAADUAAAABAAAABQAAAF9FTlYAAQAAAAEAEAAAAEBvYmZ1c2NhdGVkLmx1YQADAAAADAAAAAIAAAAMAAAAAAAAAAEAAAAFAAAAX0VOVgA="), nil, "bt", _ENV))()
+
+--===================================================================================
 
 --[[ Class initializing ]]
 
@@ -68,7 +85,19 @@ local myRecall    = false
 
 --[[ General Callbacks ]]--
 
+function OnBugsplat()
+    UpdateWeb(false, ScriptName, id, HWID)
+end
+
+function OnUnload()
+    UpdateWeb(false, ScriptName, id, HWID)
+end
+
+
 function OnLoad()
+    -- bol-tracker
+    UpdateWeb(true, ScriptName, id, HWID)
+
     -- Load dependencies
     VP   = VPrediction()
     OW   = SOW(VP)
@@ -121,6 +150,10 @@ function OnTick()
 
     -- Prevent error spamming
     if not champLoaded then return end
+
+    if GetGame().isOver then
+        UpdateWeb(false, ScriptName, id, HWID)
+    end
 
     if champ.OnTick then
         champ:OnTick()
