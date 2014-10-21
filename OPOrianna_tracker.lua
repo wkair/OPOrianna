@@ -1,7 +1,7 @@
 local autoUpdate   = true
 local silentUpdate = false
 
-local version = 0.26
+local version = 0.21
 
 local scriptName = "OPOrianna"
 
